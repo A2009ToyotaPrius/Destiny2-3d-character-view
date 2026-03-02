@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destiny 2 Character Showcase | Guardian Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --destiny-dark: #0a0e14;
+            --destiny-blue: #00b4d8;
+            --destiny-gold: #f4d03f;
+            --destiny-purple: #9b59b6;
+            --hunter-orange: #ff6b35;
+            --titan-red: #e74c3c;
+            --warlock-purple: #8e44ad;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--destiny-dark);
+            overflow-x: hidden;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Animated Background */
+        .space-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            overflow: hidden;
+        }
+
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.6), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: twinkle 5s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 3D Character Viewer Styles */
+        .character-stage {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .character-container {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            cursor: grab;
+        }
+
+        .character-container:active {
+            cursor: grabbing;
+        }
+
+        .character-silhouette {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,180,216,0.1) 0%, rgba(0,0,0,0) 100%);
+            border-radius: 20px;
+            transform: translateZ(0);
+            box-shadow: 
+                0 20px 50px rgba(0,180,216,0.3),
+                inset 0 0 100px rgba(0,180,216,0.1);
+            border: 2px solid rgba(0,180,216,0.3);
+        }
+
+        .character-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .gear-piece {
+            position: absolute;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .gear-piece:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: var(--destiny-gold);
+            transform: translateZ(20px) scale(1.05);
+            box-shadow: 0 0 20px rgba(244,208,63,0.4);
+        }
+
+        /* Class-specific glows */
+        .hunter-glow {
+            box-shadow: 0 0 30px rgba(255,107,53,0.4);
+            border-color: rgba(255,107,53,0.5);
+        }
+
+        .titan-glow {
+            box-shadow: 0 0 30px rgba(231,76,60,0.4);
+            border-color: rgba(231,76,60,0.5);
+        }
+
+        .warlock-glow {
+            box-shadow: 0 0 30px rgba(142,68,173,0.4);
+            border-color: rgba(142,68,173,0.5);
+        }
+
+        /* UI Elements */
+        .glass-panel {
+            background: rgba(10,14,20,0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+        }
+
+        .stat-bar {
+            background: rgba(255,255,255,0.1);
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--destiny-blue), var(--destiny-gold));
+            transition: width 1s ease-out;
+            box-shadow: 0 0 10px var(--destiny-blue);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, rgba(0,180,216,0.2), rgba(0,180,216,0.05));
+            border: 2px solid var(--destiny-blue);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            background: rgba(0,180,216,0.3);
+            box-shadow: 0 0 30px rgba(0,180,216,0.5);
+            transform: translateY(-2px);
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .login-btn:hover::before {
+            animation: shine 0.5s ease-in-out;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+
+        /* Loading Animation */
+        .loader-ring {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+        }
+
+        .loader-ring:after {
+            content: " ";
+            display: block;
+            width: 64px;
+            height: 64px;
+            margin: 8px;
+            border-radius: 50%;
+            border: 6px solid var(--destiny-blue);
+            border-color: var(--destiny-blue) transparent var(--destiny-blue) transparent;
+            animation: ring 1.2s linear infinite;
+        }
+
+        @keyframes ring {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--destiny-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--destiny-blue);
+            border-radius: 4px;
+        }
+
+        /* Item Rarity Colors */
+        .exotic { color: #f4d03f; border-color: #f4d03f; }
+        .legendary { color: #9b59b6; border-color: #9b59b6; }
+        .rare { color: #3498db; border-color: #3498db; }
+    </style>
+</head>
+<body class="text-white min-h-screen">
+
+    <!-- Background -->
+    <div class="space-bg">
+        <div class="stars"></div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm transition-opacity duration-500">
+        <div class="text-center max-w-md px-6">
+            <div class="mb-8">
+                <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-blue-500/50">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <h1 class="font-orbitron text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                    GUARDIAN VISUALIZER
+                </h1>
+                <p class="text-gray-400 text-lg">Connect your Bungie.net account to view your characters in 3D</p>
+            </div>
+
+            <button onclick="authenticate()" class="login-btn px-8 py-4 rounded-lg font-orbitron font-bold text-lg tracking-wider w-full mb-4 group">
+                <span class="flex items-center justify-center gap-3">
+                    <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    SIGN IN WITH BUNGIE.NET
+                </span>
+            </button>
+
+            <p class="text-xs text-gray-500 mt-4">
+                Note: This is a frontend demo. Real authentication requires Bungie API OAuth setup.
+            </p>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 z-40 flex items-center justify-center bg-black hidden">
+        <div class="text-center">
+            <div class="loader-ring mb-4"></div>
+            <p class="font-orbitron text-blue-400 animate-pulse">RETRIEVING GUARDIAN DATA...</p>
+            <p class="text-xs text-gray-500 mt-2" id="loadingText">Connecting to Bungie.net API...</p>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden min-h-screen flex flex-col">
+        
+        <!-- Header -->
+        <header class="glass-panel sticky top-0 z-30 border-b border-white/10">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                        <span class="font-orbitron font-bold text-lg">D2</span>
+                    </div>
+                    <div>
+                        <h1 class="font-orbitron font-bold text-xl tracking-wider">GUARDIAN VISUALIZER</h1>
+                        <p class="text-xs text-gray-400">Bungie.net API Demo</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden md:block">
+                        <p class="font-bold text-sm" id="username">Guardian#1234</p>
+                        <p class="text-xs text-gray-400">Light Level <span class="text-yellow-400 font-bold" id="maxLight">1810</span></p>
+                    </div>
+                    <button onclick="logout()" class="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Sign Out">
+                        <svg class="w-6 h-6 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Character Selection -->
+        <div class="glass-panel border-b border-white/10">
+            <div class="max-w-7xl mx-auto px-4 py-3">
+                <div class="flex gap-4 overflow-x-auto pb-2" id="characterTabs">
+                    <!-- Tabs generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Panel: Character Stats -->
+            <div class="lg:col-span-3 space-y-4">
+                <div class="glass-panel rounded-xl p-6 space-y-6">
+                    <div>
+                        <h3 class="font-orbitron text-lg font-bold mb-4 text-blue-400">CHARACTER STATS</h3>
+                        
+                        <div class="space-y-4" id="characterStats">
+                            <!-- Stats generated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="border-t border-white/10 pt-4">
+                        <h4 class="text-sm font-bold text-gray-400 mb-3">ACTIVE SUBCLASS</h4>
+                        <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10" id="subclassDisplay">
+                            <!-- Subclass info -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl p-6">
+                    <h3 class="font-orbitron text-sm font-bold mb-3 text-gray-400">RECENT ACTIVITIES</h3>
+                    <div class="space-y-3" id="activityLog">
+                        <!-- Activities -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: 3D Character Viewer -->
+            <div class="lg:col-span-6 flex flex-col items-center justify-center relative">
+                <div class="absolute top-0 left-0 right-0 flex justify-between items-start z-10 pointer-events-none">
+                    <div class="glass-panel px-4 py-2 rounded-lg pointer-events-auto">
+                        <p class="text-xs text-gray-400 mb-1">Class</p>
+                        <p class="font-orbitron font-bold text-xl" id="className">HUNTER</p>
+                    </div>
+                    <div class="glass-panel px-4 py-2 rounded-lg pointer-events-auto text-right">
+                        <p class="text-xs text-gray-400 mb-1">Light Level</p>
+                        <p class="font-orbitron font-bold text-2xl text-yellow-400" id="lightLevel">1810</p>
+                    </div>
+                </div>
+
+                <div class="character-stage w-full h-[600px] flex items-center justify-center" id="stage">
+                    <div class="character-container" id="characterModel">
+                        <div class="character-silhouette" id="silhouette"></div>
+                        
+                        <!-- Gear slots positioned absolutely -->
+                        <div class="gear-piece w-16 h-16 rounded-lg top-4 left-1/2 -translate-x-1/2 flex items-center justify-center cursor-pointer" 
+                             style="transform: translateZ(40px) translateX(-50%);" 
+                             data-slot="helmet" title="Helmet">
+                            <svg class="w-8 h-8 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                        </div>
+
+                        <div class="gear-piece w-20 h-24 rounded-lg top-24 left-4 flex items-center justify-center cursor-pointer" 
+                             style="transform: translateZ(30px);" 
+                             data-slot="arms" title="Gauntlets">
+                            <svg class="w-10 h-10 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l-5.5 9h11z M12 5.84L13.93 9h-3.87z M17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5z"/></svg>
+                        </div>
+
+                        <div class="gear-piece w-24 h-32 rounded-lg top-24 left-1/2 -translate-x-1/2 flex items-center justify-center cursor-pointer" 
+                             style="transform: translateZ(50px) translateX(-50%);" 
+                             data-slot="chest" title="Chest Armor">
+                            <svg class="w-12 h-12 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-8-5z"/></svg>
+                        </div>
+
+                        <div class="gear-piece w-20 h-24 rounded-lg top-24 right-4 flex items-center justify-center cursor-pointer" 
+                             style="transform: translateZ(30px);" 
+                             data-slot="legs" title="Leg Armor">
+                            <svg class="w-10 h-10 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        </div>
+
+                        <div class="gear-piece w-16 h-20 rounded-lg bottom-24 left-1/2 -translate-x-1/2 flex items-center justify-center cursor-pointer" 
+                             style="transform: translateZ(35px) translateX(-50%);" 
+                             data-slot="class" title="Class Item">
+                            <svg class="w-8 h-8 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        </div>
+
+                        <div class="gear-piece w-12 h-32 rounded-lg bottom-0 left-8 flex items-center justify-center cursor-pointer exotic" 
+                             style="transform: translateZ(45px);" 
+                             data-slot="weapon" title="Kinetic Weapon">
+                            <svg class="w-8 h-8 opacity-80" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 00-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 000-1.41z"/></svg>
+                        </div>
+
+                        <div class="gear-piece w-12 h-28 rounded-lg bottom-0 right-8 flex items-center justify-center cursor-pointer legendary" 
+                             style="transform: translateZ(40px);" 
+                             data-slot="energy" title="Energy Weapon">
+                            <svg class="w-8 h-8 opacity-80" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-400 mb-2">Click & Drag to Rotate • Hover Gear for Details</p>
+                    <div class="flex gap-2 justify-center">
+                        <button onclick="resetView()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm transition-colors">Reset View</button>
+                        <button onclick="toggleAutoRotate()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm transition-colors" id="autoRotateBtn">Auto-Rotate: ON</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Inventory -->
+            <div class="lg:col-span-3 space-y-4">
+                <div class="glass-panel rounded-xl p-6">
+                    <h3 class="font-orbitron text-lg font-bold mb-4 text-purple-400">EQUIPPED GEAR</h3>
+                    <div class="space-y-3" id="equippedGear">
+                        <!-- Gear list generated by JS -->
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl p-6">
+                    <h3 class="font-orbitron text-sm font-bold mb-3 text-gray-400">VAULT SUMMARY</h3>
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="p-3 rounded-lg bg-white/5">
+                            <p class="text-2xl font-bold text-yellow-400" id="exoticCount">12</p>
+                            <p class="text-xs text-gray-400">Exotics</p>
+                        </div>
+                        <div class="p-3 rounded-lg bg-white/5">
+                            <p class="text-2xl font-bold text-purple-400" id="legendaryCount">147</p>
+                            <p class="text-xs text-gray-400">Legendary</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Gear Detail Modal -->
+    <div id="gearModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm" onclick="closeModal(event)">
+        <div class="glass-panel rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all scale-95 opacity-0" id="modalContent" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <span class="text-xs font-bold px-2 py-1 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/30" id="modalRarity">EXOTIC</span>
+                    <h3 class="font-orbitron text-2xl font-bold mt-2" id="modalItemName">Item Name</h3>
+                    <p class="text-sm text-gray-400" id="modalItemType">Weapon Type</p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <div class="w-full h-48 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 mb-4 flex items-center justify-center border border-white/10">
+                <svg class="w-24 h-24 opacity-30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+
+            <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="modalDescription">
+                Item description and lore text would appear here.
+            </p>
+
+            <div class="space-y-2" id="modalStats">
+                <!-- Item stats -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data matching Bungie API structure
+        const mockData = {
+            user: {
+                displayName: "Guardian#1234",
+                membershipId: "4611686018488107374",
+                maxLightLevel: 1810
+            },
+            characters: [
+                {
+                    characterId: "2305843009444904606",
+                    classType: 0, // Titan
+                    className: "TITAN",
+                    race: "Exo",
+                    gender: "Male",
+                    lightLevel: 1805,
+                    emblemPath: "titan_emblem.jpg",
+                    stats: {
+                        mobility: 32,
+                        resilience: 100,
+                        recovery: 60,
+                        discipline: 80,
+                        intellect: 70,
+                        strength: 40
+                    },
+                    subclass: {
+                        name: "Sentinel",
+                        element: "Void",
+                        super: "Ward of Dawn"
+                    },
+                    equipped: [
+                        { name: "Helm of Saint-14", type: "Helmet", rarity: "exotic", power: 1805, description: "Starless Night: Your Ward of Dawn blinds enemies that enter it." },
+                        { name: "Stronghold", type: "Gauntlets", rarity: "exotic", power: 1802, description: "Clenched Fist: Maximizes Guard stats and grants melee energy on hits." },
+                        { name: "Iron Truage Plate", type: "Chest Armor", rarity: "legendary", power: 1804, description: "Forged in the fires of the Iron Banner." },
+                        { name: "Peregrine Greaves", type: "Leg Armor", rarity: "exotic", power: 1803, description: "Peregrine Strike: All shoulder charge abilities deal bonus damage." },
+                        { name: "Mark of the Falling Star", type: "Titan Mark", rarity: "legendary", power: 1801, description: "Shows the weight of your devotion." }
+                    ],
+                    weapons: [
+                        { name: "Ace of Spades", type: "Hand Cannon", slot: "Kinetic", rarity: "exotic", power: 1806, description: "Memento Mori: Reloading after a precision kill loads a high-damage round." },
+                        { name: "Palindrome", type: "Hand Cannon", slot: "Energy", rarity: "legendary", power: 1803, description: "A classic returns." },
+                        { name: "Gjallarhorn", type: "Rocket Launcher", slot: "Power", rarity: "exotic", power: 1805, description: "Wolfpack Rounds: Rounds split into tracking cluster missiles." }
+                    ],
+                    activities: [
+                        { name: "King's Fall", type: "Raid", completed: "2 hours ago" },
+                        { name: "Trials of Osiris", type: "PvP", completed: "Yesterday" },
+                        { name: "Nightfall: The Ordeal", type: "Strike", completed: "2 days ago" }
+                    ]
+                },
+                {
+                    characterId: "2305843009444904607",
+                    classType: 1, // Hunter
+                    className: "HUNTER",
+                    race: "Human",
+                    gender: "Female",
+                    lightLevel: 1810,
+                    emblemPath: "hunter_emblem.jpg",
+                    stats: {
+                        mobility: 100,
+                        resilience: 40,
+                        recovery: 80,
+                        discipline: 60,
+                        intellect: 90,
+                        strength: 30
+                    },
+                    subclass: {
+                        name: "Nightstalker",
+                        element: "Void",
+                        super: "Shadowshot"
+                    },
+                    equipped: [
+                        { name: "Wormhusk Crown", type: "Helmet", rarity: "exotic", power: 1808, description: "Burning Souls: Dodging gives a small health and shield bump." },
+                        { name: "Young Ahamkara's Spine", type: "Gauntlets", rarity: "exotic", power: 1809, description: "Wish-Dragon Teeth: Tripmine grenades last longer." },
+                        { name: "Dragon's Shadow", type: "Chest Armor", rarity: "exotic", power: 1810, description: "Wraithmetal Mail: Dodging reloads all weapons and increases movement speed." },
+                        { name: "St0mp-EE5", type: "Leg Armor", rarity: "exotic", power: 1807, description: "Hydraulic Boosters: Increases sprint speed and slide distance." },
+                        { name: "Cloak of the Sixth Coyote", type: "Hunter Cloak", rarity: "legendary", power: 1806, description: "The second coyote is for the second dodge." }
+                    ],
+                    weapons: [
+                        { name: "Thorn", type: "Hand Cannon", slot: "Kinetic", rarity: "exotic", power: 1810, description: "Mark of the Devourer: Rounds pierce targets and deal damage over time." },
+                        { name: "Felwinter's Lie", type: "Shotgun", slot: "Energy", rarity: "legendary", power: 1808, description: "Shot Package: Fixed pellet spread." },
+                        { name: "The Lament", type: "Sword", slot: "Power", rarity: "exotic", power: 1809, description: "Revved Consumption: Damage increases with revs, shield-piercing." }
+                    ],
+                    activities: [
+                        { name: "Deep Stone Crypt", type: "Raid", completed: "5 hours ago" },
+                        { name: "Grandmaster Nightfall", type: "Strike", completed: "1 day ago" },
+                        { name: "Iron Banner", type: "PvP", completed: "3 days ago" }
+                    ]
+                },
+                {
+                    characterId: "2305843009444904608",
+                    classType: 2, // Warlock
+                    className: "WARLOCK",
+                    race: "Awoken",
+                    gender: "Male",
+                    lightLevel: 1808,
+                    emblemPath: "warlock_emblem.jpg",
+                    stats: {
+                        mobility: 40,
+                        resilience: 50,
+                        recovery: 100,
+                        discipline: 90,
+                        intellect: 80,
+                        strength: 40
+                    },
+                    subclass: {
+                        name: "Dawnblade",
+                        element: "Solar",
+                        super: "Well of Radiance"
+                    },
+                    equipped: [
+                        { name: "Lunafaction Boots", type: "Leg Armor", rarity: "exotic", power: 1807, description: "Alchemical Etchings: Rifts reload weapons instantly." },
+                        { name: "Transversive Steps", type: "Leg Armor", rarity: "exotic", power: 1806, description: "Strange Protractor: Reloads weapon and increases movement speed." },
+                        { name: "Phoenix Protocol", type: "Chest Armor", rarity: "exotic", power: 1808, description: "Battle Hearth: Kills in Well of Radiance refund Super energy." },
+                        { name: "Sunbracers", type: "Gauntlets", rarity: "exotic", power: 1805, description: "Helium Spirals: Increases grenade duration." },
+                        { name: "The Stag", type: "Helmet", rarity: "exotic", power: 1804, description: "Dearly Departed: Grants Rift energy on death." }
+                    ],
+                    weapons: [
+                        { name: "Witherhoard", type: "Grenade Launcher", slot: "Kinetic", rarity: "exotic", power: 1808, description: "Dark Matter: Projectiles blight the target area." },
+                        { name: "IKELOS_SG_v1.0.2", type: "Shotgun", slot: "Energy", rarity: "legendary", power: 1807, description: "Rasputin's personal weapon." },
+                        { name: "Sleeper Simulant", type: "Linear Fusion Rifle", slot: "Power", rarity: "exotic", power: 1806, description: "Dornröschen: Overpenetrates and ricochets." }
+                    ],
+                    activities: [
+                        { name: "Vault of Glass", type: "Raid", completed: "1 hour ago" },
+                        { name: "Crucible", type: "PvP", completed: "Yesterday" },
+                        { name: "Dares of Eternity", type: "Activity", completed: "2 days ago" }
+                    ]
+                }
+            ],
+            vault: {
+                exoticCount: 12,
+                legendaryCount: 147,
+                rareCount: 23
+            }
+        };
+
+        let currentCharacter = 1; // Default to Hunter
+        let autoRotate = true;
+        let rotationInterval;
+        let isDragging = false;
+        let startX, currentRotation = 0;
+
+        // Initialize
+        function init() {
+            renderCharacterTabs();
+            loadCharacter(currentCharacter);
+            setup3DViewer();
+        }
+
+        function authenticate() {
+            const loginScreen = document.getElementById('loginScreen');
+            const loadingScreen = document.getElementById('loadingScreen');
+            
+            // Simulate OAuth flow
+            loginScreen.style.opacity = '0';
+            setTimeout(() => {
+                loginScreen.classList.add('hidden');
+                loadingScreen.classList.remove('hidden');
+                
+                // Simulate API calls
+                setTimeout(() => {
+                    document.getElementById('loadingText').textContent = 'Fetching character data...';
+                }, 1000);
+                
+                setTimeout(() => {
+                    document.getElementById('loadingText').textContent = 'Loading 3D assets...';
+                }, 2000);
+                
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    init();
+                }, 3000);
+            }, 500);
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        function renderCharacterTabs() {
+            const container = document.getElementById('characterTabs');
+            container.innerHTML = '';
+            
+            mockData.characters.forEach((char, index) => {
+                const isActive = index === currentCharacter;
+                const btn = document.createElement('button');
+                btn.className = `flex items-center gap-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap ${isActive ? 'bg-white/20 border border-white/30' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`;
+                
+                let classColor = 'text-gray-400';
+                if (char.className === 'TITAN') classColor = 'text-red-400';
+                if (char.className === 'HUNTER') classColor = 'text-orange-400';
+                if (char.className === 'WARLOCK') classColor = 'text-purple-400';
+                
+                btn.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs font-bold ${classColor}">
+                        ${char.className[0]}
+                    </div>
+                    <div class="text-left">
+                        <p class="font-bold text-sm ${classColor}">${char.className}</p>
+                        <p class="text-xs text-gray-400">⚡ ${char.lightLevel}</p>
+                    </div>
+                `;
+                
+                btn.onclick = () => switchCharacter(index);
+                container.appendChild(btn);
+            });
+        }
+
+        function switchCharacter(index) {
+            currentCharacter = index;
+            renderCharacterTabs();
+            
+            // Animate transition
+            const model = document.getElementById('characterModel');
+            model.style.transform = 'rotateY(90deg) scale(0.8)';
+            model.style.opacity = '0';
+            
+            setTimeout(() => {
+                loadCharacter(index);
+                model.style.transform = 'rotateY(0deg) scale(1)';
+                model.style.opacity = '1';
+            }, 300);
+        }
+
+        function loadCharacter(index) {
+            const char = mockData.characters[index];
+            
+            // Update header info
+            document.getElementById('className').textContent = char.className;
+            document.getElementById('lightLevel').textContent = char.lightLevel;
+            document.getElementById('username').textContent = mockData.user.displayName;
+            document.getElementById('maxLight').textContent = mockData.user.maxLightLevel;
+            
+            // Update vault counts
+            document.getElementById('exoticCount').textContent = mockData.vault.exoticCount;
+            document.getElementById('legendaryCount').textContent = mockData.vault.legendaryCount;
+            
+            // Update stats
+            const statsHtml = `
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Mobility</span>
+                        <span class="font-bold">${char.stats.mobility}</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.mobility}%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Resilience</span>
+                        <span class="font-bold">${char.stats.resilience}</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.resilience}%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Recovery</span>
+                        <span class="font-bold">${char.stats.recovery}</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.recovery}%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Discipline</span>
+                        <span class="font-bold">${char.stats.discipline}</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.discipline}%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Intellect</span>
+                        <span class="font-bold">${char.stats.intellect}</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.intellect}%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Strength</span>
+                        <span class="font-bold">${char.stats.strength}</span>
+                    </div>
+                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.strength}%"></div></div>
+                </div>
+            `;
+            document.getElementById('characterStats').innerHTML = statsHtml;
+            
+            // Update subclass
+            const elementColors = {
+                'Solar': 'text-orange-400',
+                'Arc': 'text-blue-400',
+                'Void': 'text-purple-400',
+                'Stasis': 'text-cyan-400',
+                'Strand': 'text-green-400'
+            };
+            
+            document.getElementById('subclassDisplay').innerHTML = `
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
+                    <span class="text-lg ${elementColors[char.subclass.element] || 'text-gray-400'}">◆</span>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">${char.subclass.name}</p>
+                    <p class="text-xs text-gray-400">${char.subclass.element} • ${char.subclass.super}</p>
+                </div>
+            `;
+            
+            // Update equipped gear list
+            const gearHtml = char.equipped.map(item => `
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border-l-2 ${item.rarity === 'exotic' ? 'border-yellow-400' : 'border-purple-400'}" onclick="showGearDetails('${item.name}', '${item.type}', '${item.rarity}', '${item.description}', ${item.power})">
+                    <div class="w-10 h-10 rounded bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center ${item.rarity === 'exotic' ? 'text-yellow-400' : 'text-purple-400'}">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-sm truncate ${item.rarity === 'exotic' ? 'text-yellow-400' : 'text-purple-400'}">${item.name}</p>
+                        <p class="text-xs text-gray-400">${item.type} • ${item.power} Power</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add weapons
+            const weaponsHtml = char.weapons.map(item => `
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border-l-2 ${item.rarity === 'exotic' ? 'border-yellow-400' : 'border-purple-400'}" onclick="showGearDetails('${item.name}', '${item.type}', '${item.rarity}', '${item.description}', ${item.power})">
+                    <div class="w-10 h-10 rounded bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center ${item.rarity === 'exotic' ? 'text-yellow-400' : 'text-purple-400'}">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 00-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 000-1.41z"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-sm truncate ${item.rarity === 'exotic' ? 'text-yellow-400' : 'text-purple-400'}">${item.name}</p>
+                        <p class="text-xs text-gray-400">${item.slot} • ${item.power} Power</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('equippedGear').innerHTML = gearHtml + weaponsHtml;
+            
+            // Update activities
+            document.getElementById('activityLog').innerHTML = char.activities.map(act => `
+                <div class="flex justify-between items-center text-sm p-2 rounded hover:bg-white/5">
+                    <div>
+                        <p class="font-bold text-gray-300">${act.name}</p>
+                        <p class="text-xs text-gray-500">${act.type}</p>
+                    </div>
+                    <span class="text-xs text-gray-500">${act.completed}</span>
+                </div>
+            `).join('');
+            
+            // Update 3D model styling based on class
+            const silhouette = document.getElementById('silhouette');
+            silhouette.className = 'character-silhouette';
+            
+            if (char.className === 'TITAN') silhouette.classList.add('titan-glow');
+            else if (char.className === 'HUNTER') silhouette.classList.add('hunter-glow');
+            else if (char.className === 'WARLOCK') silhouette.classList.add('warlock-glow');
+        }
+
+        function setup3DViewer() {
+            const container = document.getElementById('characterModel');
+            const stage = document.getElementById('stage');
+            
+            // Mouse drag rotation
+            stage.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                container.style.transition = 'none';
+                stopAutoRotate();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - startX;
+                currentRotation += deltaX * 0.5;
+                container.style.transform = `rotateY(${currentRotation}deg)`;
+                startX = e.clientX;
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                container.style.transition = 'transform 0.1s ease-out';
+            });
+            
+            // Touch support
+            stage.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                startX = e.touches[0].clientX;
+                container.style.transition = 'none';
+                stopAutoRotate();
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.touches[0].clientX - startX;
+                currentRotation += deltaX * 0.5;
+                container.style.transform = `rotateY(${currentRotation}deg)`;
+                startX = e.touches[0].clientX;
+            });
+            
+            document.addEventListener('touchend', () => {
+                isDragging = false;
+                container.style.transition = 'transform 0.1s ease-out';
+            });
+            
+            // Gear piece clicks
+            document.querySelectorAll('.gear-piece').forEach(piece => {
+                piece.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const slot = piece.getAttribute('data-slot');
+                    const char = mockData.characters[currentCharacter];
+                    let item;
+                    
+                    if (slot === 'weapon') item = char.weapons[0];
+                    else if (slot === 'energy') item = char.weapons[1];
+                    else item = char.equipped.find(i => i.type.toLowerCase().includes(slot) || slot.includes(i.type.toLowerCase()));
+                    
+                    if (item) {
+                        showGearDetails(item.name, item.type, item.rarity, item.description, item.power);
+                    }
+                });
+            });
+            
+            startAutoRotate();
+        }
+
+        function startAutoRotate() {
+            if (!autoRotate) return;
+            const container = document.getElementById('characterModel');
+            rotationInterval = setInterval(() => {
+                if (!isDragging) {
+                    currentRotation += 0.5;
+                    container.style.transform = `rotateY(${currentRotation}deg)`;
+                }
+            }, 50);
+        }
+
+        function stopAutoRotate() {
+            clearInterval(rotationInterval);
+        }
+
+        function toggleAutoRotate() {
+            autoRotate = !autoRotate;
+            const btn = document.getElementById('autoRotateBtn');
+            if (autoRotate) {
+                btn.textContent = 'Auto-Rotate: ON';
+                startAutoRotate();
+            } else {
+                btn.textContent = 'Auto-Rotate: OFF';
+                stopAutoRotate();
+            }
+        }
+
+        function resetView() {
+            currentRotation = 0;
+            document.getElementById('characterModel').style.transform = 'rotateY(0deg)';
+        }
+
+        function showGearDetails(name, type, rarity, description, power) {
+            const modal = document.getElementById('gearModal');
+            const content = document.getElementById('modalContent');
+            
+            document.getElementById('modalItemName').textContent = name;
+            document.getElementById('modalItemType').textContent = type;
+            document.getElementById('modalDescription').textContent = description;
+            
+            const rarityEl = document.getElementById('modalRarity');
+            rarityEl.textContent = rarity.toUpperCase();
+            rarityEl.className = `text-xs font-bold px-2 py-1 rounded border ${rarity === 'exotic' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 'bg-purple-500/20 text-purple-400 border-purple-500/30'}`;
+            
+            document.getElementById('modalStats').innerHTML = `
+                <div class="flex justify-between p-2 rounded bg-white/5">
+                    <span class="text-gray-400">Power Level</span>
+                    <span class="font-bold text-yellow-400">${power}</span>
+                </div>
+                <div class="flex justify-between p-2 rounded bg-white/5">
+                    <span class="text-gray-400">Masterwork</span>
+                    <span class="font-bold text-green-400">Tier 10</span>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal(event) {
+            const modal = document.getElementById('gearModal');
+            const content = document.getElementById('modalContent');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
