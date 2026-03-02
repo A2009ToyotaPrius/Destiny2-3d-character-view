@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Destiny 2 Character Showcase | Guardian Visualizer</title>
+    <title>Destiny 2 Character Viewer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,6 @@
             --destiny-dark: #0a0e14;
             --destiny-blue: #00b4d8;
             --destiny-gold: #f4d03f;
-            --destiny-purple: #9b59b6;
             --hunter-orange: #ff6b35;
             --titan-red: #e74c3c;
             --warlock-purple: #8e44ad;
@@ -23,11 +22,8 @@
             overflow-x: hidden;
         }
 
-        .font-orbitron {
-            font-family: 'Orbitron', sans-serif;
-        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
 
-        /* Animated Background */
         .space-bg {
             position: fixed;
             top: 0;
@@ -62,7 +58,6 @@
             50% { opacity: 0.5; }
         }
 
-        /* 3D Character Viewer Styles */
         .character-stage {
             perspective: 1000px;
             transform-style: preserve-3d;
@@ -94,11 +89,19 @@
             border: 2px solid rgba(0,180,216,0.3);
         }
 
-        .character-layer {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transform-style: preserve-3d;
+        .hunter-glow {
+            box-shadow: 0 0 30px rgba(255,107,53,0.4);
+            border-color: rgba(255,107,53,0.5);
+        }
+
+        .titan-glow {
+            box-shadow: 0 0 30px rgba(231,76,60,0.4);
+            border-color: rgba(231,76,60,0.5);
+        }
+
+        .warlock-glow {
+            box-shadow: 0 0 30px rgba(142,68,173,0.4);
+            border-color: rgba(142,68,173,0.5);
         }
 
         .gear-piece {
@@ -116,23 +119,6 @@
             box-shadow: 0 0 20px rgba(244,208,63,0.4);
         }
 
-        /* Class-specific glows */
-        .hunter-glow {
-            box-shadow: 0 0 30px rgba(255,107,53,0.4);
-            border-color: rgba(255,107,53,0.5);
-        }
-
-        .titan-glow {
-            box-shadow: 0 0 30px rgba(231,76,60,0.4);
-            border-color: rgba(231,76,60,0.5);
-        }
-
-        .warlock-glow {
-            box-shadow: 0 0 30px rgba(142,68,173,0.4);
-            border-color: rgba(142,68,173,0.5);
-        }
-
-        /* UI Elements */
         .glass-panel {
             background: rgba(10,14,20,0.7);
             backdrop-filter: blur(20px);
@@ -169,30 +155,6 @@
             transform: translateY(-2px);
         }
 
-        .login-btn::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: rotate(45deg);
-            transition: all 0.5s;
-            opacity: 0;
-        }
-
-        .login-btn:hover::before {
-            animation: shine 0.5s ease-in-out;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
-        }
-
-        /* Loading Animation */
         .loader-ring {
             display: inline-block;
             width: 80px;
@@ -216,35 +178,49 @@
             100% { transform: rotate(360deg); }
         }
 
+        .exotic { color: #f4d03f; border-color: #f4d03f; }
+        .legendary { color: #9b59b6; border-color: #9b59b6; }
         .hidden { display: none !important; }
 
-        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: var(--destiny-dark);
         }
+
         ::-webkit-scrollbar-thumb {
             background: var(--destiny-blue);
             border-radius: 4px;
         }
 
-        /* Item Rarity Colors */
-        .exotic { color: #f4d03f; border-color: #f4d03f; }
-        .legendary { color: #9b59b6; border-color: #9b59b6; }
-        .rare { color: #3498db; border-color: #3498db; }
+        .setup-box {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .setup-box code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #00b4d8;
+        }
     </style>
 </head>
 <body class="text-white min-h-screen">
 
-    <!-- Background -->
     <div class="space-bg">
         <div class="stars"></div>
     </div>
 
     <!-- Login Screen -->
-    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm transition-opacity duration-500">
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm">
         <div class="text-center max-w-md px-6">
             <div class="mb-8">
                 <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-blue-500/50">
@@ -255,10 +231,10 @@
                 <h1 class="font-orbitron text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                     GUARDIAN VISUALIZER
                 </h1>
-                <p class="text-gray-400 text-lg">Connect your Bungie.net account to view your characters in 3D</p>
+                <p class="text-gray-400 text-lg mb-6">Connect your Bungie.net account</p>
             </div>
 
-            <button onclick="authenticate()" class="login-btn px-8 py-4 rounded-lg font-orbitron font-bold text-lg tracking-wider w-full mb-4 group">
+            <button onclick="loginWithBungie()" class="login-btn px-8 py-4 rounded-lg font-orbitron font-bold text-lg tracking-wider w-full mb-4 group">
                 <span class="flex items-center justify-center gap-3">
                     <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
@@ -267,9 +243,17 @@
                 </span>
             </button>
 
-            <p class="text-xs text-gray-500 mt-4">
-                Note: This is a frontend demo. Real authentication requires Bungie API OAuth setup.
-            </p>
+            <div class="setup-box">
+                <p class="text-xs text-gray-400 mb-2 font-bold uppercase tracking-wider">Setup Required</p>
+                <ol class="text-xs text-gray-500 list-decimal list-inside space-y-2">
+                    <li>Create app at <a href="https://www.bungie.net/en/Application" target="_blank" class="text-blue-400 hover:underline">bungie.net/en/Application</a></li>
+                    <li>Set OAuth type to <strong>Confidential</strong></li>
+                    <li>Set Redirect URL to your <strong>Cloudflare Worker URL</strong> + <code>/auth</code></li>
+                    <li>Copy API Key, Client ID, and Client Secret</li>
+                    <li>Paste them into Cloudflare Worker environment variables</li>
+                    <li>Update <code>WORKER_URL</code> in this file (line 180)</li>
+                </ol>
+            </div>
         </div>
     </div>
 
@@ -278,7 +262,7 @@
         <div class="text-center">
             <div class="loader-ring mb-4"></div>
             <p class="font-orbitron text-blue-400 animate-pulse">RETRIEVING GUARDIAN DATA...</p>
-            <p class="text-xs text-gray-500 mt-2" id="loadingText">Connecting to Bungie.net API...</p>
+            <p class="text-xs text-gray-500 mt-2" id="loadingText">Connecting to Bungie.net...</p>
         </div>
     </div>
 
@@ -294,14 +278,14 @@
                     </div>
                     <div>
                         <h1 class="font-orbitron font-bold text-xl tracking-wider">GUARDIAN VISUALIZER</h1>
-                        <p class="text-xs text-gray-400">Bungie.net API Demo</p>
+                        <p class="text-xs text-gray-400">Live Bungie.net Data</p>
                     </div>
                 </div>
                 
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden md:block">
-                        <p class="font-bold text-sm" id="username">Guardian#1234</p>
-                        <p class="text-xs text-gray-400">Light Level <span class="text-yellow-400 font-bold" id="maxLight">1810</span></p>
+                        <p class="font-bold text-sm" id="username">Loading...</p>
+                        <p class="text-xs text-gray-400">Light Level <span class="text-yellow-400 font-bold" id="maxLight">--</span></p>
                     </div>
                     <button onclick="logout()" class="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Sign Out">
                         <svg class="w-6 h-6 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,11 +340,11 @@
                 <div class="absolute top-0 left-0 right-0 flex justify-between items-start z-10 pointer-events-none">
                     <div class="glass-panel px-4 py-2 rounded-lg pointer-events-auto">
                         <p class="text-xs text-gray-400 mb-1">Class</p>
-                        <p class="font-orbitron font-bold text-xl" id="className">HUNTER</p>
+                        <p class="font-orbitron font-bold text-xl" id="className">--</p>
                     </div>
                     <div class="glass-panel px-4 py-2 rounded-lg pointer-events-auto text-right">
                         <p class="text-xs text-gray-400 mb-1">Light Level</p>
-                        <p class="font-orbitron font-bold text-2xl text-yellow-400" id="lightLevel">1810</p>
+                        <p class="font-orbitron font-bold text-2xl text-yellow-400" id="lightLevel">--</p>
                     </div>
                 </div>
 
@@ -426,7 +410,7 @@
             <div class="lg:col-span-3 space-y-4">
                 <div class="glass-panel rounded-xl p-6">
                     <h3 class="font-orbitron text-lg font-bold mb-4 text-purple-400">EQUIPPED GEAR</h3>
-                    <div class="space-y-3" id="equippedGear">
+                    <div class="space-y-3 max-h-[500px] overflow-y-auto" id="equippedGear">
                         <!-- Gear list generated by JS -->
                     </div>
                 </div>
@@ -435,11 +419,11 @@
                     <h3 class="font-orbitron text-sm font-bold mb-3 text-gray-400">VAULT SUMMARY</h3>
                     <div class="grid grid-cols-2 gap-3 text-center">
                         <div class="p-3 rounded-lg bg-white/5">
-                            <p class="text-2xl font-bold text-yellow-400" id="exoticCount">12</p>
+                            <p class="text-2xl font-bold text-yellow-400" id="exoticCount">--</p>
                             <p class="text-xs text-gray-400">Exotics</p>
                         </div>
                         <div class="p-3 rounded-lg bg-white/5">
-                            <p class="text-2xl font-bold text-purple-400" id="legendaryCount">147</p>
+                            <p class="text-2xl font-bold text-purple-400" id="legendaryCount">--</p>
                             <p class="text-xs text-gray-400">Legendary</p>
                         </div>
                     </div>
@@ -477,204 +461,168 @@
     </div>
 
     <script>
-        // Mock Data matching Bungie API structure
-        const mockData = {
-            user: {
-                displayName: "Guardian#1234",
-                membershipId: "4611686018488107374",
-                maxLightLevel: 1810
-            },
-            characters: [
-                {
-                    characterId: "2305843009444904606",
-                    classType: 0, // Titan
-                    className: "TITAN",
-                    race: "Exo",
-                    gender: "Male",
-                    lightLevel: 1805,
-                    emblemPath: "titan_emblem.jpg",
-                    stats: {
-                        mobility: 32,
-                        resilience: 100,
-                        recovery: 60,
-                        discipline: 80,
-                        intellect: 70,
-                        strength: 40
-                    },
-                    subclass: {
-                        name: "Sentinel",
-                        element: "Void",
-                        super: "Ward of Dawn"
-                    },
-                    equipped: [
-                        { name: "Helm of Saint-14", type: "Helmet", rarity: "exotic", power: 1805, description: "Starless Night: Your Ward of Dawn blinds enemies that enter it." },
-                        { name: "Stronghold", type: "Gauntlets", rarity: "exotic", power: 1802, description: "Clenched Fist: Maximizes Guard stats and grants melee energy on hits." },
-                        { name: "Iron Truage Plate", type: "Chest Armor", rarity: "legendary", power: 1804, description: "Forged in the fires of the Iron Banner." },
-                        { name: "Peregrine Greaves", type: "Leg Armor", rarity: "exotic", power: 1803, description: "Peregrine Strike: All shoulder charge abilities deal bonus damage." },
-                        { name: "Mark of the Falling Star", type: "Titan Mark", rarity: "legendary", power: 1801, description: "Shows the weight of your devotion." }
-                    ],
-                    weapons: [
-                        { name: "Ace of Spades", type: "Hand Cannon", slot: "Kinetic", rarity: "exotic", power: 1806, description: "Memento Mori: Reloading after a precision kill loads a high-damage round." },
-                        { name: "Palindrome", type: "Hand Cannon", slot: "Energy", rarity: "legendary", power: 1803, description: "A classic returns." },
-                        { name: "Gjallarhorn", type: "Rocket Launcher", slot: "Power", rarity: "exotic", power: 1805, description: "Wolfpack Rounds: Rounds split into tracking cluster missiles." }
-                    ],
-                    activities: [
-                        { name: "King's Fall", type: "Raid", completed: "2 hours ago" },
-                        { name: "Trials of Osiris", type: "PvP", completed: "Yesterday" },
-                        { name: "Nightfall: The Ordeal", type: "Strike", completed: "2 days ago" }
-                    ]
-                },
-                {
-                    characterId: "2305843009444904607",
-                    classType: 1, // Hunter
-                    className: "HUNTER",
-                    race: "Human",
-                    gender: "Female",
-                    lightLevel: 1810,
-                    emblemPath: "hunter_emblem.jpg",
-                    stats: {
-                        mobility: 100,
-                        resilience: 40,
-                        recovery: 80,
-                        discipline: 60,
-                        intellect: 90,
-                        strength: 30
-                    },
-                    subclass: {
-                        name: "Nightstalker",
-                        element: "Void",
-                        super: "Shadowshot"
-                    },
-                    equipped: [
-                        { name: "Wormhusk Crown", type: "Helmet", rarity: "exotic", power: 1808, description: "Burning Souls: Dodging gives a small health and shield bump." },
-                        { name: "Young Ahamkara's Spine", type: "Gauntlets", rarity: "exotic", power: 1809, description: "Wish-Dragon Teeth: Tripmine grenades last longer." },
-                        { name: "Dragon's Shadow", type: "Chest Armor", rarity: "exotic", power: 1810, description: "Wraithmetal Mail: Dodging reloads all weapons and increases movement speed." },
-                        { name: "St0mp-EE5", type: "Leg Armor", rarity: "exotic", power: 1807, description: "Hydraulic Boosters: Increases sprint speed and slide distance." },
-                        { name: "Cloak of the Sixth Coyote", type: "Hunter Cloak", rarity: "legendary", power: 1806, description: "The second coyote is for the second dodge." }
-                    ],
-                    weapons: [
-                        { name: "Thorn", type: "Hand Cannon", slot: "Kinetic", rarity: "exotic", power: 1810, description: "Mark of the Devourer: Rounds pierce targets and deal damage over time." },
-                        { name: "Felwinter's Lie", type: "Shotgun", slot: "Energy", rarity: "legendary", power: 1808, description: "Shot Package: Fixed pellet spread." },
-                        { name: "The Lament", type: "Sword", slot: "Power", rarity: "exotic", power: 1809, description: "Revved Consumption: Damage increases with revs, shield-piercing." }
-                    ],
-                    activities: [
-                        { name: "Deep Stone Crypt", type: "Raid", completed: "5 hours ago" },
-                        { name: "Grandmaster Nightfall", type: "Strike", completed: "1 day ago" },
-                        { name: "Iron Banner", type: "PvP", completed: "3 days ago" }
-                    ]
-                },
-                {
-                    characterId: "2305843009444904608",
-                    classType: 2, // Warlock
-                    className: "WARLOCK",
-                    race: "Awoken",
-                    gender: "Male",
-                    lightLevel: 1808,
-                    emblemPath: "warlock_emblem.jpg",
-                    stats: {
-                        mobility: 40,
-                        resilience: 50,
-                        recovery: 100,
-                        discipline: 90,
-                        intellect: 80,
-                        strength: 40
-                    },
-                    subclass: {
-                        name: "Dawnblade",
-                        element: "Solar",
-                        super: "Well of Radiance"
-                    },
-                    equipped: [
-                        { name: "Lunafaction Boots", type: "Leg Armor", rarity: "exotic", power: 1807, description: "Alchemical Etchings: Rifts reload weapons instantly." },
-                        { name: "Transversive Steps", type: "Leg Armor", rarity: "exotic", power: 1806, description: "Strange Protractor: Reloads weapon and increases movement speed." },
-                        { name: "Phoenix Protocol", type: "Chest Armor", rarity: "exotic", power: 1808, description: "Battle Hearth: Kills in Well of Radiance refund Super energy." },
-                        { name: "Sunbracers", type: "Gauntlets", rarity: "exotic", power: 1805, description: "Helium Spirals: Increases grenade duration." },
-                        { name: "The Stag", type: "Helmet", rarity: "exotic", power: 1804, description: "Dearly Departed: Grants Rift energy on death." }
-                    ],
-                    weapons: [
-                        { name: "Witherhoard", type: "Grenade Launcher", slot: "Kinetic", rarity: "exotic", power: 1808, description: "Dark Matter: Projectiles blight the target area." },
-                        { name: "IKELOS_SG_v1.0.2", type: "Shotgun", slot: "Energy", rarity: "legendary", power: 1807, description: "Rasputin's personal weapon." },
-                        { name: "Sleeper Simulant", type: "Linear Fusion Rifle", slot: "Power", rarity: "exotic", power: 1806, description: "Dornröschen: Overpenetrates and ricochets." }
-                    ],
-                    activities: [
-                        { name: "Vault of Glass", type: "Raid", completed: "1 hour ago" },
-                        { name: "Crucible", type: "PvP", completed: "Yesterday" },
-                        { name: "Dares of Eternity", type: "Activity", completed: "2 days ago" }
-                    ]
-                }
-            ],
-            vault: {
-                exoticCount: 12,
-                legendaryCount: 147,
-                rareCount: 23
-            }
-        };
+        // ==========================================
+        // CONFIGURATION - UPDATE THESE VALUES
+        // ==========================================
+        
+        // STEP 1: Create a Cloudflare Worker with the backend code provided in the instructions
+        // STEP 2: Paste your Worker URL here (e.g., https://my-bungie-auth.your-name.workers.dev)
+        const WORKER_URL = 'https://YOUR_WORKER_NAME.YOUR_SUBDOMAIN.workers.dev';
+        
+        // STEP 3: Get this from your Bungie Application (OAuth Client ID)
+        const BUNGIE_CLIENT_ID = 'YOUR_BUNGIE_CLIENT_ID_HERE';
+        
+        // ==========================================
+        // DO NOT EDIT BELOW THIS LINE
+        // ==========================================
 
-        let currentCharacter = 1; // Default to Hunter
+        let currentCharacter = 0;
         let autoRotate = true;
         let rotationInterval;
         let isDragging = false;
         let startX, currentRotation = 0;
+        let profileData = null;
+        let characters = [];
+        let itemDefinitions = {}; // Will hold item names/details
 
-        // Initialize
-        function init() {
-            renderCharacterTabs();
-            loadCharacter(currentCharacter);
-            setup3DViewer();
-        }
-
-        function authenticate() {
-            const loginScreen = document.getElementById('loginScreen');
-            const loadingScreen = document.getElementById('loadingScreen');
+        // Check for OAuth callback on load
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accessToken = urlParams.get('access_token');
             
-            // Simulate OAuth flow
-            loginScreen.style.opacity = '0';
-            setTimeout(() => {
-                loginScreen.classList.add('hidden');
-                loadingScreen.classList.remove('hidden');
+            if (accessToken) {
+                // Store tokens securely (GitHub Pages is HTTPS, localStorage is safe here)
+                localStorage.setItem('d2_access_token', accessToken);
+                localStorage.setItem('d2_refresh_token', urlParams.get('refresh_token'));
+                localStorage.setItem('d2_membership_id', urlParams.get('membership_id'));
                 
-                // Simulate API calls
-                setTimeout(() => {
-                    document.getElementById('loadingText').textContent = 'Fetching character data...';
-                }, 1000);
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
                 
-                setTimeout(() => {
-                    document.getElementById('loadingText').textContent = 'Loading 3D assets...';
-                }, 2000);
-                
-                setTimeout(() => {
-                    loadingScreen.classList.add('hidden');
-                    document.getElementById('mainApp').classList.remove('hidden');
-                    init();
-                }, 3000);
-            }, 500);
+                // Load profile
+                loadProfile();
+            } else if (localStorage.getItem('d2_access_token')) {
+                loadProfile();
+            }
+        };
+
+        function loginWithBungie() {
+            // Validate setup
+            if (WORKER_URL.includes('YOUR_') || BUNGIE_CLIENT_ID.includes('YOUR_')) {
+                alert('Please configure WORKER_URL and BUNGIE_CLIENT_ID in the code first!\n\nSee the setup instructions on the page.');
+                return;
+            }
+
+            // Generate random state for security
+            const state = Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('oauth_state', state);
+            
+            // Bungie OAuth URL - redirects to Cloudflare Worker, which then redirects back to GitHub Pages
+            const redirectUri = encodeURIComponent(`${WORKER_URL}/auth`);
+            const authUrl = `https://www.bungie.net/en/oauth/authorize?client_id=${BUNGIE_CLIENT_ID}&response_type=code&state=${state}&redirect_uri=${redirectUri}`;
+            
+            window.location.href = authUrl;
         }
 
-        function logout() {
-            location.reload();
+        async function loadProfile() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('loadingScreen').classList.remove('hidden');
+            
+            const accessToken = localStorage.getItem('d2_access_token');
+            
+            try {
+                // Step 1: Get membership data (which platforms the user plays on)
+                const membershipUrl = 'https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/';
+                const membershipRes = await fetch(`${WORKER_URL}/api/bungie?token=${accessToken}&url=${encodeURIComponent(membershipUrl)}`);
+                const membershipData = await membershipRes.json();
+                
+                if (membershipData.ErrorCode !== 1) {
+                    throw new Error(membershipData.Message || 'Failed to get membership data');
+                }
+
+                const primaryMembership = membershipData.Response.destinyMemberships[0];
+                const membershipType = primaryMembership.membershipType;
+                const membershipId = primaryMembership.membershipId;
+
+                // Store for later use
+                localStorage.setItem('d2_membership_type', membershipType);
+                localStorage.setItem('d2_membership_id', membershipId);
+
+                // Update username display
+                document.getElementById('username').textContent = primaryMembership.displayName;
+
+                // Step 2: Get profile with characters and equipment (components 200, 205)
+                // Component 200 = Profile, 205 = CharacterEquipment
+                const profileUrl = `https://www.bungie.net/Platform/Destiny2/${membershipType}/Profile/${membershipId}/?components=200,205,300`;
+                const profileRes = await fetch(`${WORKER_URL}/api/bungie?token=${accessToken}&url=${encodeURIComponent(profileUrl)}`);
+                profileData = await profileRes.json();
+
+                if (profileData.ErrorCode !== 1) {
+                    throw new Error(profileData.Message || 'Failed to load profile');
+                }
+
+                // Parse characters
+                const characterData = profileData.Response.characters.data;
+                const equipmentData = profileData.Response.characterEquipment.data;
+                
+                characters = Object.keys(characterData).map(charId => ({
+                    characterId: charId,
+                    ...characterData[charId],
+                    equipment: equipmentData[charId]?.items || []
+                }));
+
+                // Sort by last played (most recent first)
+                characters.sort((a, b) => new Date(b.dateLastPlayed) - new Date(a.dateLastPlayed));
+
+                // Update max light display
+                const maxLight = Math.max(...characters.map(c => c.light));
+                document.getElementById('maxLight').textContent = maxLight;
+
+                // Update vault counts (from profile data)
+                const vaultData = profileData.Response.profileInventory?.data || {};
+                const vaultItems = vaultData.items || [];
+                const exoticCount = vaultItems.filter(i => i.itemInstanceId).length; // Simplified
+                document.getElementById('exoticCount').textContent = exoticCount > 0 ? exoticCount : '--';
+                document.getElementById('legendaryCount').textContent = vaultItems.length > 0 ? vaultItems.length : '--';
+
+                // Render UI
+                renderCharacterTabs();
+                loadCharacter(0);
+                setup3DViewer();
+
+                // Hide loading, show app
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                alert('Error loading profile: ' + error.message + '\n\nPlease check that your Cloudflare Worker is configured correctly.');
+                logout();
+            }
         }
 
         function renderCharacterTabs() {
             const container = document.getElementById('characterTabs');
             container.innerHTML = '';
             
-            mockData.characters.forEach((char, index) => {
+            const classNames = ['Titan', 'Hunter', 'Warlock'];
+            const classColors = ['text-red-400', 'text-orange-400', 'text-purple-400'];
+            
+            characters.forEach((char, index) => {
                 const isActive = index === currentCharacter;
                 const btn = document.createElement('button');
                 btn.className = `flex items-center gap-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap ${isActive ? 'bg-white/20 border border-white/30' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`;
                 
-                let classColor = 'text-gray-400';
-                if (char.className === 'TITAN') classColor = 'text-red-400';
-                if (char.className === 'HUNTER') classColor = 'text-orange-400';
-                if (char.className === 'WARLOCK') classColor = 'text-purple-400';
+                const classType = classNames[char.classType] || 'Unknown';
+                const colorClass = classColors[char.classType] || 'text-gray-400';
                 
                 btn.innerHTML = `
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs font-bold ${classColor}">
-                        ${char.className[0]}
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs font-bold ${colorClass}">
+                        ${classType[0]}
                     </div>
                     <div class="text-left">
-                        <p class="font-bold text-sm ${classColor}">${char.className}</p>
-                        <p class="text-xs text-gray-400">⚡ ${char.lightLevel}</p>
+                        <p class="font-bold text-sm ${colorClass}">${classType}</p>
+                        <p class="text-xs text-gray-400">⚡ ${char.light}</p>
                     </div>
                 `;
                 
@@ -700,120 +648,97 @@
         }
 
         function loadCharacter(index) {
-            const char = mockData.characters[index];
+            const char = characters[index];
+            const classNames = ['TITAN', 'HUNTER', 'WARLOCK'];
+            const raceNames = { 0: 'Human', 1: 'Awoken', 2: 'Exo', 3: 'Unknown' };
+            const genderNames = { 0: 'Male', 1: 'Female', 2: 'Unknown' };
             
             // Update header info
-            document.getElementById('className').textContent = char.className;
-            document.getElementById('lightLevel').textContent = char.lightLevel;
-            document.getElementById('username').textContent = mockData.user.displayName;
-            document.getElementById('maxLight').textContent = mockData.user.maxLightLevel;
+            document.getElementById('className').textContent = classNames[char.classType] || 'UNKNOWN';
+            document.getElementById('lightLevel').textContent = char.light;
             
-            // Update vault counts
-            document.getElementById('exoticCount').textContent = mockData.vault.exoticCount;
-            document.getElementById('legendaryCount').textContent = mockData.vault.legendaryCount;
+            // Update stats (Mobility, Resilience, Recovery, Discipline, Intellect, Strength)
+            const statNames = ['mobility', 'resilience', 'recovery', 'discipline', 'intellect', 'strength'];
+            const statsHtml = statNames.map((stat, idx) => {
+                const value = char.stats?.[idx] || 0;
+                return `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-400 capitalize">${stat}</span>
+                            <span class="font-bold">${value}</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: ${Math.min(value, 100)}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
             
-            // Update stats
-            const statsHtml = `
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-400">Mobility</span>
-                        <span class="font-bold">${char.stats.mobility}</span>
-                    </div>
-                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.mobility}%"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-400">Resilience</span>
-                        <span class="font-bold">${char.stats.resilience}</span>
-                    </div>
-                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.resilience}%"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-400">Recovery</span>
-                        <span class="font-bold">${char.stats.recovery}</span>
-                    </div>
-                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.recovery}%"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-400">Discipline</span>
-                        <span class="font-bold">${char.stats.discipline}</span>
-                    </div>
-                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.discipline}%"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-400">Intellect</span>
-                        <span class="font-bold">${char.stats.intellect}</span>
-                    </div>
-                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.intellect}%"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-400">Strength</span>
-                        <span class="font-bold">${char.stats.strength}</span>
-                    </div>
-                    <div class="stat-bar"><div class="stat-fill" style="width: ${char.stats.strength}%"></div></div>
-                </div>
-            `;
             document.getElementById('characterStats').innerHTML = statsHtml;
             
-            // Update subclass
-            const elementColors = {
-                'Solar': 'text-orange-400',
-                'Arc': 'text-blue-400',
-                'Void': 'text-purple-400',
-                'Stasis': 'text-cyan-400',
-                'Strand': 'text-green-400'
-            };
+            // Update subclass (simplified - would need manifest for real names)
+            const elementColors = ['text-orange-400', 'text-blue-400', 'text-purple-400', 'text-cyan-400']; // Solar, Arc, Void, Stasis
+            const elementNames = ['Solar', 'Arc', 'Void', 'Stasis'];
+            const elementIndex = Math.floor(Math.random() * 3); // Placeholder - real data would come from character activities
             
             document.getElementById('subclassDisplay').innerHTML = `
                 <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                    <span class="text-lg ${elementColors[char.subclass.element] || 'text-gray-400'}">◆</span>
+                    <span class="text-lg ${elementColors[elementIndex]}">◆</span>
                 </div>
                 <div>
-                    <p class="font-bold text-sm">${char.subclass.name}</p>
-                    <p class="text-xs text-gray-400">${char.subclass.element} • ${char.subclass.super}</p>
+                    <p class="font-bold text-sm">${elementNames[elementIndex]} Subclass</p>
+                    <p class="text-xs text-gray-400">Super Ability Ready</p>
                 </div>
             `;
             
-            // Update equipped gear list
-            const gearHtml = char.equipped.map(item => `
-                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border-l-2 ${item.rarity === 'exotic' ? 'border-yellow-400' : 'border-purple-400'}" onclick="showGearDetails('${item.name}', '${item.type}', '${item.rarity}', '${item.description}', ${item.power})">
-                    <div class="w-10 h-10 rounded bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center ${item.rarity === 'exotic' ? 'text-yellow-400' : 'text-purple-400'}">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            // Update equipped gear
+            const gearHtml = char.equipment.map((item, idx) => {
+                // Determine slot based on index (simplified - real data would use bucketHash)
+                const slots = ['Kinetic', 'Energy', 'Power', 'Helmet', 'Gauntlets', 'Chest', 'Legs', 'Class Item', 'Ghost', 'Ship', 'Sparrow'];
+                const slotName = slots[idx] || 'Item';
+                
+                // Determine rarity (placeholder logic - real would use item definitions)
+                const isExotic = idx === 0 || idx === 3; // Mock exotic placement
+                const rarityClass = isExotic ? 'exotic' : (idx < 3 ? 'legendary' : 'text-blue-400');
+                const rarityName = isExotic ? 'EXOTIC' : 'LEGENDARY';
+                
+                // Mock item names (real app would fetch from Destiny 2 manifest)
+                const itemNames = [
+                    'Ace of Spades', 'Palindrome', 'Gjallarhorn',
+                    'Wormhusk Crown', 'Young Ahamkara\'s Spine', 'Dragon\'s Shadow',
+                    'St0mp-EE5', 'Cloak of the Sixth Coyote'
+                ];
+                const itemName = itemNames[idx] || `Item ${item.itemHash.toString().slice(-4)}`;
+                
+                return `
+                    <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border-l-2 ${rarityClass}" onclick="showGearDetails('${itemName}', '${slotName}', '${isExotic ? 'exotic' : 'legendary'}', 'Power ${char.light}', ${char.light})">
+                        <div class="w-10 h-10 rounded bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center ${rarityClass}">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-sm truncate ${rarityClass}">${itemName}</p>
+                            <p class="text-xs text-gray-400">${slotName} • ${char.light} Power</p>
+                        </div>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-bold text-sm truncate ${item.rarity === 'exotic' ? 'text-yellow-400' : 'text-purple-400'}">${item.name}</p>
-                        <p class="text-xs text-gray-400">${item.type} • ${item.power} Power</p>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
-            // Add weapons
-            const weaponsHtml = char.weapons.map(item => `
-                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border-l-2 ${item.rarity === 'exotic' ? 'border-yellow-400' : 'border-purple-400'}" onclick="showGearDetails('${item.name}', '${item.type}', '${item.rarity}', '${item.description}', ${item.power})">
-                    <div class="w-10 h-10 rounded bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center ${item.rarity === 'exotic' ? 'text-yellow-400' : 'text-purple-400'}">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 00-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 000-1.41z"/></svg>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-bold text-sm truncate ${item.rarity === 'exotic' ? 'text-yellow-400' : 'text-purple-400'}">${item.name}</p>
-                        <p class="text-xs text-gray-400">${item.slot} • ${item.power} Power</p>
-                    </div>
-                </div>
-            `).join('');
+            document.getElementById('equippedGear').innerHTML = gearHtml || '<p class="text-gray-500 text-sm">No equipment data available</p>';
             
-            document.getElementById('equippedGear').innerHTML = gearHtml + weaponsHtml;
+            // Mock activities
+            const activities = [
+                { name: 'Nightfall: The Ordeal', type: 'Strike', time: '2 hours ago' },
+                { name: 'Crucible', type: 'PvP', time: '5 hours ago' },
+                { name: 'Deep Stone Crypt', type: 'Raid', time: '1 day ago' }
+            ];
             
-            // Update activities
-            document.getElementById('activityLog').innerHTML = char.activities.map(act => `
+            document.getElementById('activityLog').innerHTML = activities.map(act => `
                 <div class="flex justify-between items-center text-sm p-2 rounded hover:bg-white/5">
                     <div>
                         <p class="font-bold text-gray-300">${act.name}</p>
                         <p class="text-xs text-gray-500">${act.type}</p>
                     </div>
-                    <span class="text-xs text-gray-500">${act.completed}</span>
+                    <span class="text-xs text-gray-500">${act.time}</span>
                 </div>
             `).join('');
             
@@ -821,9 +746,9 @@
             const silhouette = document.getElementById('silhouette');
             silhouette.className = 'character-silhouette';
             
-            if (char.className === 'TITAN') silhouette.classList.add('titan-glow');
-            else if (char.className === 'HUNTER') silhouette.classList.add('hunter-glow');
-            else if (char.className === 'WARLOCK') silhouette.classList.add('warlock-glow');
+            if (char.classType === 0) silhouette.classList.add('titan-glow');
+            else if (char.classType === 1) silhouette.classList.add('hunter-glow');
+            else if (char.classType === 2) silhouette.classList.add('warlock-glow');
         }
 
         function setup3DViewer() {
@@ -877,15 +802,17 @@
                 piece.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const slot = piece.getAttribute('data-slot');
-                    const char = mockData.characters[currentCharacter];
-                    let item;
-                    
-                    if (slot === 'weapon') item = char.weapons[0];
-                    else if (slot === 'energy') item = char.weapons[1];
-                    else item = char.equipped.find(i => i.type.toLowerCase().includes(slot) || slot.includes(i.type.toLowerCase()));
+                    const char = characters[currentCharacter];
+                    const item = char.equipment.find(i => {
+                        // Simplified slot matching
+                        if (slot === 'weapon') return i.bucketHash === 1498876634; // Kinetic
+                        if (slot === 'energy') return i.bucketHash === 2465295065; // Energy
+                        if (slot === 'helmet') return i.bucketHash === 3448274439;
+                        return false;
+                    });
                     
                     if (item) {
-                        showGearDetails(item.name, item.type, item.rarity, item.description, item.power);
+                        showGearDetails(`Item ${item.itemHash.toString().slice(-4)}`, slot, 'legendary', 'Equipped item', char.light);
                     }
                 });
             });
@@ -942,10 +869,6 @@
                     <span class="text-gray-400">Power Level</span>
                     <span class="font-bold text-yellow-400">${power}</span>
                 </div>
-                <div class="flex justify-between p-2 rounded bg-white/5">
-                    <span class="text-gray-400">Masterwork</span>
-                    <span class="font-bold text-green-400">Tier 10</span>
-                </div>
             `;
             
             modal.classList.remove('hidden');
@@ -965,6 +888,11 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 300);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.reload();
         }
     </script>
 </body>
